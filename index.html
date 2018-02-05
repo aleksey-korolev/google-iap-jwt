@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+	 <script language="JavaScript" type="text/javascript" src="js/jsrsasign-all-min.js"></script>
+    <title>Google IAP JWT generator and signer</title>
+
+<script language="JavaScript" type="text/javascript">
+function _doSign() {
+  var f = document.form1;
+  var sClaim = JSON.stringify(_getClaim());
+  //alert(sClaim);
+  var pHeader = {'alg': 'RS256', 'typ': 'JWT'};
+  var sHeader = JSON.stringify(pHeader);
+  var key = f.key1.value;
+  sJWS = KJUR.jws.JWS.sign(null, sHeader, sClaim, key);
+  f.jws1.value = sJWS;
+}
+
+function _getClaim() {
+  var r = {};
+  r.iat = KJUR.jws.IntDate.get('now');
+  r.exp = KJUR.jws.IntDate.get('now + 1hour');
+
+  if (document.form1.iss1.value != '') r.iss = document.form1.iss1.value;
+  if (document.form1.sub1.value != '') r.sub = document.form1.sub1.value;
+  if (document.form1.aud1.value != '') {
+    var audList = document.form1.aud1.value.split(/,/);
+    if (audList.length == 1) {
+      r.aud = audList[0];
+    } else {
+      r.aud = audList;
+    }
+  }
+  if (document.form1.target_audience.value != '') r.target_audience = document.form1.target_audience.value;
+
+  return r;
+}
+</script>
+</head>
+
+<body>
+
+<h2>Generate and sign JWT for Google IAP (Identity Aware Proxy) online</h2>
+
+<form name="form1">
+<b>JWT claim</b><br/>
+<span>Issue At Time (iat) is set to now and Expiration Time (exp) is set to now +1hour (1hour is maximum that Google accepts)<\span>
+
+<p>
+<input name="aud1" type="text" size="70" value="https://www.googleapis.com/oauth2/v4/token"/> Audience(aud)<br/>
+<input name="iss1" type="text" size="70" value=""/> Issuer(iss) - this is client_email field in service account json file, ends with @<project name>.iam.gserviceaccount.com<br/>
+<input name="sub1" type="text" size="70" value=""/> Subject(sub) - same as iss above<br/>
+<input name="target_audience" type="text" size="70" value=""/> Target Audience - this is OAuth client id configured for the resource to be accessed, ends with apps.googleusercontent.com<br/>
+
+<br/>
+<b>Private key</b>
+<span>This is private_key field in service account json file (make sure to strip all \n from the key)</span><br/>
+
+<textarea name="key1" cols="70" rows="28"></textarea><br/><br/>
+
+<b>Generate JWT and sign it with RS256 algorithm</b><br/>
+<input type="button" value="Sign it!" onClick="_doSign();"/> <br/><br/>
+<textarea name="jws1" cols="100" rows="10"></textarea><br/>
+
+<h3>This page uses <a href="https://github.com/kjur">jsrsasign</a> and is based on jsrsasign example for JWT signing.</h3>
+
+  </body>
+</html>
+

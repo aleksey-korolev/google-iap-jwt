@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+	 <script language="JavaScript" type="text/javascript" src="js/jsrsasign-all-min.js"></script>
+    <title>Google IAP JWT generator and signer</title>
+
+<script language="JavaScript" type="text/javascript">
+function _doSign() {
+  var f = document.form1;
+  var sClaim = JSON.stringify(_getClaim());
+  //alert(sClaim);
+  var pHeader = {'alg': 'RS256', 'typ': 'JWT'};
+  var sHeader = JSON.stringify(pHeader);
+  var key = f.key1.value;
+  sJWS = KJUR.jws.JWS.sign(null, sHeader, sClaim, key);
+  f.jws1.value = sJWS;
+}
+
+function _getClaim() {
+  var r = {};
+  r.iat = KJUR.jws.IntDate.get('now');
+  r.exp = KJUR.jws.IntDate.get('now + 1hour');
+
+  if (document.form1.iss1.value != '') r.iss = document.form1.iss1.value;
+  if (document.form1.sub1.value != '') r.sub = document.form1.sub1.value;
+  if (document.form1.aud1.value != '') {
+    var audList = document.form1.aud1.value.split(/,/);
+    if (audList.length == 1) {
+      r.aud = audList[0];
+    } else {
+      r.aud = audList;
+    }
+  }
+  if (document.form1.target_audience.value != '') r.target_audience = document.form1.target_audience.value;
+
+  return r;
+}
+</script>
+</head>
+
+<body>
+
+<h2>Generate and sign JWT for Google IAP (Identity Aware Proxy) online</h2>
+
+<form name="form1">
+<b>JWT claim</b><br/>
+<span>Issue At Time (iat) is set to now and Expiration Time (exp) is set to now +1hour (1hour is maximum that Google accepts)<\span>
+
+<p>
+<input name="aud1" type="text" size="70" value="https://www.googleapis.com/oauth2/v4/token"/> Audience(aud)<br/>
+<input name="iss1" type="text" size="70" value="portal-service-account@bigquery-dw-testing.iam.gserviceaccount.com"/> Issuer(iss) - this is client_email field in service account json file, ends with @<project name>.iam.gserviceaccount.com<br/>
+<input name="sub1" type="text" size="70" value="portal-service-account@bigquery-dw-testing.iam.gserviceaccount.com"/> Subject(sub) - same as iss above<br/>
+<input name="target_audience" type="text" size="70" value="956598485848-ko21apminr49o1mh3m1sb62ctkcug3dn.apps.googleusercontent.com"/> Target Audience - this is OAuth client id configured for the resource to be accessed, ends with apps.googleusercontent.com<br/>
+
+<br/>
+<b>Private key</b>
+<span>This is private_key field in service account json file (make sure to strip all \n from the key)</span><br/>
+
+<textarea name="key1" cols="70" rows="28">-----BEGIN PRIVATE KEY-----
+MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDRSnKzmemhH/N0
+lD4nfuBquN996M2XrBXGumTea1G4b62ZJeeOfAY/4+WaMjD9s+2ZOrw94kyWD/bG
+hkR60fBUR2584HHS6KwGJsR8Fg/3LLbzrc/Yvc4jPLGca+PCkSLwIf+2qzhpLSk9
+CF6wHNwHeP4wOGtVOYG/tYN/KbW6BvqFOyEa6RXKZoA49Y50m50L+AwMn+kEYcAk
+RDkhjhPmAT6zAZ4V0Mtgi+p1pEHxg4nKMDMkL0HtoNaVeVmTQaWBA+YlD5eaU981
+EtnpyVp65+IOCAiWep8je9BhqBq9kj3YsgmhxeGASqzm0BljuLMy3t8ZNILu9Hiz
+9wpGgNSxAgMBAAECggEAIbjo7+rwE8vp5qIfPK5rGw8URb2d6N8ruBRe/d6VcY4f
+DuLmY1U1DZTbMUP+lFZqRYsK+z6sH+7NELJgNNkAbBgBY8InXPgsBaa3+JV2d5l/
+Fhbuu0nj/dYA+UcCER7hHgegZA7FHV9POnwPg7l2s4aJkHv6wWXtc9YbrMDr/N/p
+4UIMSV8Q6a3BDbRViRWjoA7B9raNwPxzj4MD/LYPpThO/4q2FX/O858LntmgGt0v
+zhxtMOvKX/YDJZL1hGLhaSzSUDxzTKPxgX0jT5Ve1L6Lb5I78PhV4q8af9sMA24m
+ZC4qvJmHUYAKLBZwSDRlDazx4bM7AqDEyILbK00bZQKBgQDrwW89o1ODSZYbjvLS
+nNsMwaBQRo6ZWAgiQRpkF2n4dOSYNOIR4wijA3N2E+e7EavbUd5aCllQ0Iny03wT
+8rcRQnVVN2E9riV/D4At8+l+z9nm+pZA+CNjZK+AbSpgmx8AjL4GFJfuYSJ7DYUO
+8j+WaTFisiopQ/lLyiHacyQZDQKBgQDjQz5edCz2gXPSXuiZnRePhBL98Ip6gOt5
+PrWM+MgpvQesxOhfpAR4KUOZ7j+7JgsMX8SgESB50FUvfaVQ8LJ869cYa9Ep0PNM
+Q1obBLBG9wRaF/Shi8ap7Fa90CyKW7VJqiwT69FWXaQGFkxGN4pISLqtxqJIN2PM
+WlKtI9L5NQKBgQCR4JdcpHtAeYAQfVtzRuuj8QupoH8ME5S03WPfGz3PJ0VriQ15
+0+m8NJ51KcvxzPVyOC5FuLGbd+5j+siD72Onol/H4wSgjelVvdmqlYqdlS9X5Saj
+/Oao0dxmsyXNsS51wKC0UnnQXvpe+fajUPJXt69/So8cCZtwchqQeT6U4QKBgQDd
+ymdY2Pp0jHvTaCqKmERBHL1INPOAgMbN6gRWkwkNqtyNoRHDHRf7iRHfbSOnaoZH
+ykLjkDNojohEM9QdvPoEbknaHIbhz3lSCT0rtxSt/S6zGkP1UKtOdEdnMX32fW/c
+d4ZS3sbLCdIk2qgPsu5ygwAkzgDch6oO6mtba+XerQKBgA5N/CpTGYZERql9lodJ
+Rywe4VJBr0JQEr2iZzhwKKzSEl9y9ru6aTQZ0HiohefYr9FbcvoMJOopmOPcK//a
+cduaUhnSEsIGy/zUrRGDpCvEVYZs581SO/JNzHWFl2WMrp11+SvTzuiaSGDe+zvL
+nAmba/0jxenRjM+j1yJd9oLr
+-----END PRIVATE KEY-----</textarea><br/><br/>
+
+<b>Generate JWT and sign it with RS256 algorithm</b><br/>
+<input type="button" value="Sign it!" onClick="_doSign();"/> <br/><br/>
+<textarea name="jws1" cols="100" rows="10"></textarea><br/>
+
+<h3>This page uses <a href="https://github.com/kjur">jsrsasign</a> and is based on jsrsasign example for JWT signing.</h3>
+
+  </body>
+</html>
+
